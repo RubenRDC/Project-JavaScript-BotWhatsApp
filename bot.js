@@ -1,6 +1,9 @@
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 
+const emojiReport = "⚠";
+const countEmojiReport = 2;
+
 const urlWhiteList = [
   "https://www.youtube.com",
   "https://www.tiktok.com",
@@ -29,6 +32,12 @@ client.on("qr", (qr) => {
 client.initialize();
 
 client.on("message", async (message) => {
+  if (message.type == "chat") {
+    filterTextChat(message);
+  }
+});
+
+client.on("message_edit", async (message) => {
   if (message.type == "chat") {
     filterTextChat(message);
   }
@@ -96,3 +105,30 @@ const command = async (chat, message) => {
     await message.delete(true);
   }
 };
+
+client.on("message_reaction", async (reac) => {
+  let chat = await client.getChatById(reac.msgId.remote);
+  if (chat.isGroup) {
+    let idMsg = reac.msgId._serialized;
+    console.log("id de Mensaje: " + idMsg);
+    let ObjectMsg = await client.getMessageById(idMsg);
+    let listReacts = await ObjectMsg.getReactions();
+    if (listReacts != undefined) {
+      listReacts.forEach((e) => {
+        /*console.log(
+          listReacts.length + " " + e.aggregateEmoji + " " + e.senders.length
+        );*/
+
+        if (
+          e.aggregateEmoji === emojiReport &&
+          e.senders.length === countEmojiReport
+        ) {
+          console.log(
+            "Mensaje con el Id: " + idMsg + " fue eliminado por votacion."
+          );
+          ObjectMsg.delete(true);
+        }
+      });
+    }
+  }
+});
