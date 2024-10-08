@@ -1,33 +1,37 @@
 const Tesseract = require("tesseract.js");
+const fs = require("fs").promises;
+let badWords, urlWhiteList;
 
-const urlWhiteList = [
-  "https://www.youtube.com",
-  "https://www.tiktok.com",
-  "http://www.youtube.com",
-  "http://www.tiktok.com",
-  "https://www.instagram.com",
-  "http://www.instagram.com",
-];
+const readFileP = async (path) => {
+  try {
+    const data = await fs.readFile(path, "utf-8");
+    return JSON.parse(data);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-const badWords = ["cp", "venta", "vendo"];
+(async () => {
+  badWords = await readFileP("./variables/badWords.config");
+  urlWhiteList = await readFileP("./variables/whiteURLlist.config");
+})();
 
 const filterTextChat = async (message) => {
   const chat = await message.getChat();
   if (chat.isGroup) {
-    //console.log(message.author);
     if (checkText(message.body)) {
-      await message.delete(true);
+      deleteContent(chat, message);
     } else if (message.links.length > 0) {
       if (!checkURL(message.links)) {
-        //console.log(message.body);
-        await message.delete(true);
-        await chat.removeParticipants([message.author]);
-        //message.reply("Contenido no permitido.");
+        deleteContent(chat, message);
       }
-    } else {
-      //command(chat, message);
     }
   }
+};
+
+const deleteContent = async (chat, message) => {
+  await message.delete(true);
+  await chat.removeParticipants([message.author]);
 };
 
 const checkText = async (text) => {
@@ -38,13 +42,11 @@ const checkText = async (text) => {
       countBadWords++;
     }
   });
-  //console.log("Text =" + textLower + "\nBad Words = " + countBadWords);
   return countBadWords > 0;
 };
 
 const checkURL = (arrayObjectLink) => {
   let count = 0;
-  //console.log(msgs.length);
   arrayObjectLink.forEach((element) => {
     let { link } = element;
 
