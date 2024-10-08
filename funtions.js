@@ -1,3 +1,5 @@
+const Tesseract = require("tesseract.js");
+
 const urlWhiteList = [
   "https://www.youtube.com",
   "https://www.tiktok.com",
@@ -12,8 +14,8 @@ const badWords = ["cp", "venta", "vendo"];
 const filterTextChat = async (message) => {
   const chat = await message.getChat();
   if (chat.isGroup) {
-    console.log(message.author);
-    if (checkText(message.body.toLowerCase())) {
+    //console.log(message.author);
+    if (checkText(message.body)) {
       await message.delete(true);
     } else if (message.links.length > 0) {
       if (!checkURL(message.links)) {
@@ -28,13 +30,15 @@ const filterTextChat = async (message) => {
   }
 };
 
-const checkText = (text) => {
+const checkText = async (text) => {
   let countBadWords = 0;
+  const textLower = text.toLowerCase();
   badWords.forEach((e) => {
-    if (text.includes(e)) {
+    if (textLower.includes(e)) {
       countBadWords++;
     }
   });
+  //console.log("Text =" + textLower + "\nBad Words = " + countBadWords);
   return countBadWords > 0;
 };
 
@@ -71,4 +75,12 @@ const command = async (chat, message) => {
     await message.delete(true);
   }
 };
-module.exports = { filterTextChat };
+const realizarOCR = async (imagenBase64) => {
+  let data = await Tesseract.recognize(
+    imagenBase64,
+    "spa" // Código de idioma (español)
+  );
+  return data.data.text;
+};
+
+module.exports = { filterTextChat, realizarOCR, checkText };

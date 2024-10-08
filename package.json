@@ -1,12 +1,12 @@
 {
   "dependencies": {
     "qrcode-terminal": "^0.12.0",
+    "tesseract.js": "^5.1.1",
     "whatsapp-web.js": "^1.26.0"
   },
   "name": "botwsp",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "start": "node .",
     "test": "echo \"Error: no test specified\" && exit 1"
