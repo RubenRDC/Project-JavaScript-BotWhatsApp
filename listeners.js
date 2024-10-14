@@ -1,6 +1,11 @@
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
-const { filterTextChat, realizarOCR, checkText } = require("./funtions");
+const {
+  filterTextChat,
+  realizarOCR,
+  checkText,
+  deleteContent,
+} = require("./funtions");
 
 const emojiReport = "⚠";
 const countEmojiReport = 2;
@@ -22,22 +27,19 @@ const startBot = () => {
   });
 
   client.on("message", async (message) => {
-    if (message.type == "image" || message.type == "sticker") {
-      let bantext = await checkText(message.body);
-      let bantextimg = false;
+    if ((await filterTextChat(message)) == false) {
+      if (message.type == "image" || message.type == "sticker") {
+        if (message.hasMedia && !message.isViewOnce) {
+          let { data, mimetype } = await message.downloadMedia();
 
-      if (!bantext) {
-        let { mimetype, data } = await message.downloadMedia();
-        if (allowedMimeTypes.includes(mimetype)) {
-          let text = await realizarOCR(`data:${mimetype};base64,${data}`);
-          bantextimg = await checkText(text);
+          if (allowedMimeTypes.includes(mimetype)) {
+            let text = await realizarOCR(`data:${mimetype};base64,${data}`);
+            if (await checkText(text)) {
+              await deleteContent(message.getChat(), message);
+            }
+          }
         }
       }
-      if (bantext || bantextimg) {
-        await message.delete(true);
-      }
-    } else {
-      await filterTextChat(message);
     }
   });
 

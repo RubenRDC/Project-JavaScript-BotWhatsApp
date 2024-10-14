@@ -1,3 +1,4 @@
+const { error } = require("console");
 const Tesseract = require("tesseract.js");
 const fs = require("fs").promises;
 let badWords, urlWhiteList;
@@ -19,19 +20,39 @@ const readFileP = async (path) => {
 const filterTextChat = async (message) => {
   const chat = await message.getChat();
   if (chat.isGroup) {
-    if (checkText(message.body)) {
-      deleteContent(chat, message);
+    console.log(
+      `[${new Date(Date.now()).toString()}] Tipo: [${message.type}], Texto: [${
+        message.body
+      }], Remitente: [${message.author}]`
+      //, Raw: [${JSON.stringify(message, null, 2)}
+    );
+    const verifyText = await checkText(message.body);
+    if (verifyText) {
+      return await deleteContent(chat, message);
     } else if (message.links.length > 0) {
-      if (!checkURL(message.links)) {
-        deleteContent(chat, message);
+      if (!(await checkURL(message.links))) {
+        return await deleteContent(chat, message);
       }
     }
+    return false;
   }
 };
 
 const deleteContent = async (chat, message) => {
-  await message.delete(true);
-  await chat.removeParticipants([message.author]);
+  try {
+    await message.delete(true);
+    await chat.removeParticipants([message.author]);
+  } catch (error) {
+    console.log(
+      `[${
+        Date.now().toString
+      }] No fue posible eliminar el contenido o al participante [${
+        message.author
+      }].`
+    );
+    return false;
+  }
+  return true;
 };
 
 const checkText = async (text) => {
@@ -45,14 +66,13 @@ const checkText = async (text) => {
   return countBadWords > 0;
 };
 
-const checkURL = (arrayObjectLink) => {
+const checkURL = async (arrayObjectLink) => {
   let count = 0;
   arrayObjectLink.forEach((element) => {
     let { link } = element;
 
     urlWhiteList.forEach((whiteUrl) => {
       if (link.toLowerCase().includes(whiteUrl)) {
-        console.log(link);
         count++;
       }
     });
@@ -85,4 +105,4 @@ const realizarOCR = async (imagenBase64) => {
   return data.data.text;
 };
 
-module.exports = { filterTextChat, realizarOCR, checkText };
+module.exports = { filterTextChat, realizarOCR, checkText, deleteContent };
