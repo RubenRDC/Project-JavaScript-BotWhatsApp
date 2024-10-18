@@ -10,11 +10,28 @@ const {
 const emojiReport = "⚠";
 const countEmojiReport = 2;
 const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
+const extensionOneView = `${__dirname}/extensionOneView/WhatsApp-Bypass-Once-View-main`;
 
-const client = new Client({
+let client = new Client({
   authStrategy: new LocalAuth({
     dataPath: "LocalAuth",
   }),
+  puppeteer: {
+    //headless: true,
+    executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    args: [
+      `--disable-extensions-except=${extensionOneView}`,
+      `--load-extension=${extensionOneView}`,
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-extensions",
+      "--disable-gpu",
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      "--disable-dev-shm-usage",
+    ],
+  },
 });
 
 const startBot = () => {
@@ -75,7 +92,6 @@ const startBot = () => {
       }
     }
   });
-
   client.initialize();
 };
 
