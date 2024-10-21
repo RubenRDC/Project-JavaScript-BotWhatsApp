@@ -1,7 +1,6 @@
 const Tesseract = require("tesseract.js");
 const fs = require("fs").promises;
 const { config } = require(`../models/config`);
-let badWords, urlWhiteList;
 
 const readFileP = async (path) => {
   try {
@@ -13,14 +12,8 @@ const readFileP = async (path) => {
   }
 };
 
-(async () => {
-  badWords = (await readFileP("./variables/badWords.config")).data;
-  urlWhiteList = (await readFileP("./variables/whiteURLlist.config")).data;
-})();
-
 const filterTextChat = async (message) => {
   const chat = await message.getChat();
-
   const verifyText = await checkText(message.body);
   if (verifyText) {
     return await deleteContent(chat, message);
@@ -66,7 +59,7 @@ const deleteContent = async (chat, message) => {
 const checkText = async (text) => {
   let countBadWords = 0;
   const textLower = text.toLowerCase();
-  badWords.forEach((e) => {
+  config.badWords.forEach((e) => {
     if (textLower.includes(e)) {
       countBadWords++;
     }
@@ -79,7 +72,7 @@ const checkURL = async (arrayObjectLink) => {
   arrayObjectLink.forEach((element) => {
     let { link } = element;
 
-    urlWhiteList.forEach((whiteUrl) => {
+    config.urlWhiteList.forEach((whiteUrl) => {
       if (link.toLowerCase().includes(whiteUrl)) {
         count++;
       }
