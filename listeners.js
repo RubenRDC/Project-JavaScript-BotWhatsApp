@@ -5,8 +5,10 @@ const {
   realizarOCR,
   checkText,
   deleteContent,
-} = require("./funtions");
+  verifyGroup,
+} = require("./utils/funtions");
 
+const context = {};
 const emojiReport = "⚠";
 const countEmojiReport = 2;
 const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
@@ -44,9 +46,14 @@ const startBot = () => {
   });
 
   client.on("message", async (message) => {
-    if ((await filterTextChat(message)) == false) {
-      if (message.type == "image" || message.type == "sticker") {
-        if (message.hasMedia && !message.isViewOnce) {
+    const { IsAvaliableGroup, IsAdminBot } = verifyGroup(message.id.remote);
+    if (IsAvaliableGroup) {
+      if ((await filterTextChat(message)) == false) {
+        if (
+          (message.type == "image" || message.type == "sticker") &&
+          message.hasMedia &&
+          !message.isViewOnce
+        ) {
           let { data, mimetype } = await message.downloadMedia();
 
           if (allowedMimeTypes.includes(mimetype)) {
@@ -57,7 +64,22 @@ const startBot = () => {
           }
         }
       }
+    } else if (IsAdminBot) {
+      const chat = await message.getChat();
+      if (!context[chat.id.user]) {
+        chat.sendMessage(
+          "> Mensaje del Administrador Recibido... \nOpcion 1:\nOpcion 2:\nOpcion 3:\nOpcion 4:"
+        );
+        context[chat.id.user] = { step: 0 };
+      } else {
+        chat.sendMessage("> Mensaje del Administrador Recibido...");
+      }
     }
+    /*console.log(
+      `[${new Date(Date.now()).toString()}] Tipo: [${message.type}], Texto: [${
+        message.body
+      }], Remitente: [${message.author}] - [${chat.id.user}] [${chat.name}]`
+    );*/
   });
 
   client.on("message_edit", async (message) => {
@@ -75,10 +97,6 @@ const startBot = () => {
       let listReacts = await ObjectMsg.getReactions();
       if (listReacts != undefined) {
         listReacts.forEach((e) => {
-          /*console.log(
-          listReacts.length + " " + e.aggregateEmoji + " " + e.senders.length
-        );*/
-
           if (
             e.aggregateEmoji === emojiReport &&
             e.senders.length === countEmojiReport
