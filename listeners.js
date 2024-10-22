@@ -7,6 +7,7 @@ const {
   deleteContent,
   verifyGroup,
 } = require("./utils/funtions");
+const { urlBrowser } = require("./models/config");
 
 const context = {};
 const emojiReport = "⚠";
@@ -20,7 +21,7 @@ let client = new Client({
   }),
   puppeteer: {
     //headless: true,
-    executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    executablePath: urlBrowser,
     args: [
       `--disable-extensions-except=${extensionOneView}`,
       `--load-extension=${extensionOneView}`,
@@ -75,7 +76,9 @@ const startBot = () => {
         chat.sendMessage("> Mensaje del Administrador Recibido...");
       }
     }
-    /*console.log(
+    /*
+    const chat = await message.getChat();
+    console.log(
       `[${new Date(Date.now()).toString()}] Tipo: [${message.type}], Texto: [${
         message.body
       }], Remitente: [${message.author}] - [${chat.id.user}] [${chat.name}]`

@@ -1,16 +1,5 @@
 const Tesseract = require("tesseract.js");
-const fs = require("fs").promises;
 const { config } = require(`../models/config`);
-
-const readFileP = async (path) => {
-  try {
-    const data = await fs.readFile(path, "utf-8");
-    return { data: JSON.parse(data) };
-  } catch (e) {
-    console.error(e);
-    return { error: e };
-  }
-};
 
 const filterTextChat = async (message) => {
   const chat = await message.getChat();
