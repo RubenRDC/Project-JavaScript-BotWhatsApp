@@ -86,30 +86,30 @@ const startBot = () => {
   });
 
   client.on("message_edit", async (message) => {
-    if (message.type == "chat") {
+    const { IsAvaliableGroup, IsAdminBot } = verifyGroup(message.id.remote);
+    if (IsAvaliableGroup & (message.type == "chat")) {
       await filterTextChat(message);
     }
   });
 
   client.on("message_reaction", async (reac) => {
-    let chat = await client.getChatById(reac.msgId.remote);
-    if (chat.isGroup) {
-      let idMsg = reac.msgId._serialized;
-      console.log("id de Mensaje: " + idMsg);
-      let ObjectMsg = await client.getMessageById(idMsg);
-      let listReacts = await ObjectMsg.getReactions();
-      if (listReacts != undefined) {
-        listReacts.forEach((e) => {
-          if (
-            e.aggregateEmoji === emojiReport &&
-            e.senders.length === countEmojiReport
-          ) {
-            console.log(
-              "Mensaje con el Id: " + idMsg + " fue eliminado por votacion."
-            );
-            ObjectMsg.delete(true);
-          }
-        });
+    const { IsAvaliableGroup, IsAdminBot } = verifyGroup(reac.msgId.remote);
+    if (IsAvaliableGroup) {
+      let chat = await client.getChatById(reac.msgId.remote);
+      if (chat.isGroup) {
+        let idMsg = reac.msgId._serialized;
+        let ObjectMsg = await client.getMessageById(idMsg);
+        let listReacts = await ObjectMsg.getReactions();
+        if (listReacts != undefined) {
+          listReacts.forEach((e) => {
+            if (
+              e.aggregateEmoji === emojiReport &&
+              e.senders.length === countEmojiReport
+            ) {
+              ObjectMsg.delete(true);
+            }
+          });
+        }
       }
     }
   });
