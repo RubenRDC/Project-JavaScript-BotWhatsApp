@@ -6,6 +6,8 @@ const {
   checkText,
   deleteContent,
   verifyGroup,
+  countMessage,
+  ejectCommand,
 } = require("./utils/funtions");
 const { urlBrowser } = require("./models/config");
 
@@ -51,7 +53,7 @@ const startBot = () => {
     if (IsAvaliableGroup) {
       if ((await filterTextChat(message)) == false) {
         if (
-          (message.type == "image" || message.type == "sticker") &&
+          message.type == "image" &&
           message.hasMedia &&
           !message.isViewOnce
         ) {
@@ -60,7 +62,7 @@ const startBot = () => {
           if (allowedMimeTypes.includes(mimetype)) {
             let text = await realizarOCR(`data:${mimetype};base64,${data}`);
             if (await checkText(text)) {
-              await deleteContent(message.getChat(), message);
+              return await deleteContent(message.getChat(), message); //En caso de que el contenido se elimine se ignora condiciones posteriores.
             }
           }
         }
@@ -76,6 +78,8 @@ const startBot = () => {
         chat.sendMessage("> Mensaje del Administrador Recibido...");
       }
     }
+    countMessage(message.author, message.type);
+    ejectCommand(message.body);
     /*
     const chat = await message.getChat();
     console.log(

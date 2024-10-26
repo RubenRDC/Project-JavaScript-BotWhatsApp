@@ -1,5 +1,6 @@
 const Tesseract = require("tesseract.js");
 const { config } = require(`../models/config`);
+const activity = {};
 
 const filterTextChat = async (message) => {
   const chat = await message.getChat();
@@ -12,6 +13,53 @@ const filterTextChat = async (message) => {
     }
   }
   return false;
+};
+
+const getParticipantsGroup = () => {
+};
+
+const ejectCommand = (text) => {
+  const textLower = text.toLowerCase();
+  console.log(textLower);
+  if (textLower == "#activity") {
+    console.log(JSON.stringify(activity, null, " "));
+  }
+};
+
+const countMessage = async (messageAuthor, messageType) => {
+  if (!activity[messageAuthor]) {
+    activity[messageAuthor] = {
+      NumberAuthor: messageAuthor,
+      textMsgs: 0,
+      documentMsgs: 0,
+      imgMsgs: 0,
+      videoMsgs: 0,
+      audioMsgs: 0,
+    };
+  }
+
+  switch (messageType) {
+    case "chat": {
+      activity[messageAuthor].textMsgs = +1;
+      break;
+    }
+    case "document": {
+      activity[messageAuthor].documentMsgs = +1;
+      break;
+    }
+    case "image": {
+      activity[messageAuthor].imgMsgs = +1;
+      break;
+    }
+    case "video": {
+      activity[messageAuthor].videoMsgs = +1;
+      break;
+    }
+    case "ptt": {
+      activity[messageAuthor].audioMsgs = +1;
+      break;
+    }
+  }
 };
 
 const verifyGroup = (idGroup) => {
@@ -84,4 +132,6 @@ module.exports = {
   checkText,
   deleteContent,
   verifyGroup,
+  countMessage,
+  ejectCommand,
 };
